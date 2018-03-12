@@ -1,6 +1,5 @@
-import bloom_filter_pkg::*;
-
 module ast_shift #(
+  parameter int BYTE_W           = 8,
   parameter int AST_SINK_SYMBOLS = 8,
   parameter bit AST_SINK_ORDER   = 1,
   parameter int AST_SINK_EMPTY_W = ( AST_SINK_SYMBOLS  == 1   ) ?
@@ -8,9 +7,7 @@ module ast_shift #(
                                    ( $clog2(AST_SINK_SYMBOLS) ),
 
   parameter int WINDOW_SIZE      = 20,
-  parameter int WINDOW_SIZE_W    = ( WINDOW_SIZE == 1    ) ?
-                                   ( 1                   ) :
-                                   ( $clog2(WINDOW_SIZE) )
+  parameter int WINDOW_SIZE_W    = $clog2(WINDOW_SIZE)+1
 )(
   input                                                       clk_i,
   input                                                       srst_i,
@@ -25,23 +22,25 @@ module ast_shift #(
   input                                                       ast_sink_startofpacket_i,
 
   output  [AST_SINK_SYMBOLS-1:0][WINDOW_SIZE-1:0][BYTE_W-1:0] windows_data_o,
-  output  [AST_SINK_SYMBOLS-1:0][WINDOW_SIZE_W:0]             windows_data_valid_bytes_o,
-  input                                                       windows_data_ready_i
+  output  [AST_SINK_SYMBOLS-1:0][WINDOW_SIZE_W-1:0]           windows_valid_bytes_o,
+  input                                                       windows_ready_i
 );
 
-localparam SHIFT_BUFF_SIZE = AST_SINK_SYMBOLS+WINDOW_SIZE-1;
+localparam SHIFT_BUFF_SIZE   = AST_SINK_SYMBOLS+WINDOW_SIZE-1;
+localparam SHIFT_BUFF_SIZE_W = $clog2(SHIFT_BUFF_SIZE);
+localparam SHIFT_BUFF_PTRS_W = SHIFT_BUFF_SIZE_W+1;
 
 logic [SHIFT_BUFF_SIZE-1:0][BYTE_W-1:0]                   shift_buff;
 logic [SHIFT_BUFF_SIZE-1:0][BYTE_W-1:0]                   next_shift_buff;
-logic [$clog2(SHIFT_BUFF_SIZE):0]                         shift_buff_head;
-logic [$clog2(SHIFT_BUFF_SIZE):0]                         shift_buff_tail;
+logic [SHIFT_BUFF_PTRS_W-1:0]                             shift_buff_head;
+logic [SHIFT_BUFF_PTRS_W-1:0]                             shift_buff_tail;
 logic                                                     last_clear_shift;
 
 logic [AST_SINK_SYMBOLS-1:0][BYTE_W-1:0]                  ast_sink_data;
 
 logic [AST_SINK_SYMBOLS-1:0][WINDOW_SIZE-1:0][BYTE_W-1:0] windows_data;
 logic                                                     head_in_windows;
-logic [AST_SINK_SYMBOLS-1:0][WINDOW_SIZE_W:0]             windows_data_valid_bytes;
+logic [AST_SINK_SYMBOLS-1:0][WINDOW_SIZE_W-1:0]           windows_valid_bytes;
 logic                                                     saved_windows_ready;
 
 enum logic [0:0] { SHIFT_INPUT_S,
@@ -76,7 +75,7 @@ always_comb
 
       CLEAR_SHIFT_S:
         begin
-          if( last_clear_shift && windows_data_ready_i )
+          if( last_clear_shift && windows_ready_i )
             begin
               next_state = SHIFT_INPUT_S;
             end
@@ -113,7 +112,7 @@ endgenerate
 
 assign ast_sink_ready_o = ( ( state == SHIFT_INPUT_S ) && en_i            ) ?
                           ( ( head_in_windows                             ) ?
-                            ( saved_windows_ready || windows_data_ready_i ) :
+                            ( saved_windows_ready || windows_ready_i ) :
                             ( 1'b1                                        ) ) :
                           ( 1'b0                                            );
 
@@ -134,7 +133,7 @@ always_ff @( posedge clk_i )
               end
             else
               begin
-                if( windows_data_ready_i && !( ast_sink_valid_i && ast_sink_ready_o ) )
+                if( windows_ready_i && !( ast_sink_valid_i && ast_sink_ready_o ) )
                   saved_windows_ready <= 1'b1;
               end
           end
@@ -155,14 +154,14 @@ endgenerate
 always_ff @( posedge clk_i )
   begin
     if( ( ast_sink_ready_o && ast_sink_valid_i && en_i       ) || 
-        ( ( state == CLEAR_SHIFT_S ) && windows_data_ready_i )    )
+        ( ( state == CLEAR_SHIFT_S ) && windows_ready_i )    )
       shift_buff <=  next_shift_buff;
   end
 
 always_ff @( posedge clk_i )
   begin
     if( srst_i )
-      shift_buff_head <= SHIFT_BUFF_SIZE;
+      shift_buff_head <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE);
     else
       begin
         if( state == SHIFT_INPUT_S )
@@ -170,28 +169,28 @@ always_ff @( posedge clk_i )
             if( ast_sink_valid_i && ast_sink_ready_o )
               begin
                 if( ast_sink_startofpacket_i )
-                  shift_buff_head <= SHIFT_BUFF_SIZE - AST_SINK_SYMBOLS;
+                  shift_buff_head <= SHIFT_BUFF_SIZE - SHIFT_BUFF_PTRS_W'(AST_SINK_SYMBOLS);
                 else
                   begin
                     if( head_in_windows ) 
                       shift_buff_head <= '0;
                     else
-                      shift_buff_head <= shift_buff_head - AST_SINK_SYMBOLS;
+                      shift_buff_head <= shift_buff_head - SHIFT_BUFF_PTRS_W'(AST_SINK_SYMBOLS);
                   end
               end
           end
         else
           begin
-            if( windows_data_ready_i )
+            if( windows_ready_i )
               begin
                 if( last_clear_shift )
-                  shift_buff_head <= SHIFT_BUFF_SIZE;
+                  shift_buff_head <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE);
                 else
                   begin
                     if( head_in_windows ) 
                       shift_buff_head <= '0;
                     else
-                      shift_buff_head <= shift_buff_head - AST_SINK_SYMBOLS;
+                      shift_buff_head <= shift_buff_head - SHIFT_BUFF_PTRS_W'(AST_SINK_SYMBOLS);
                   end
               end
           end
@@ -201,7 +200,7 @@ always_ff @( posedge clk_i )
 always_ff @( posedge clk_i )
   begin
     if( srst_i )
-      shift_buff_tail <= SHIFT_BUFF_SIZE;
+      shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE);
     else
       begin
         if( state == SHIFT_INPUT_S )
@@ -209,19 +208,19 @@ always_ff @( posedge clk_i )
             if( ast_sink_valid_i && ast_sink_ready_o )
               begin
                 if( ast_sink_endofpacket_i )
-                  shift_buff_tail <= SHIFT_BUFF_SIZE - 1 - ast_sink_empty_i;
+                  shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE) - 1 - ast_sink_empty_i;
                 else
-                  shift_buff_tail <= SHIFT_BUFF_SIZE - 1;
+                  shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE) - 1;
               end
           end
         else
           begin
-            if( windows_data_ready_i )
+            if( windows_ready_i )
               begin
                 if( last_clear_shift )
-                  shift_buff_tail <= SHIFT_BUFF_SIZE;
+                  shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE);
                 else
-                  shift_buff_tail <= shift_buff_tail - AST_SINK_SYMBOLS;
+                  shift_buff_tail <= shift_buff_tail - SHIFT_BUFF_PTRS_W'(AST_SINK_SYMBOLS);
               end
           end
       end
@@ -236,25 +235,25 @@ always_comb
 always_comb
   begin
     if( saved_windows_ready || !head_in_windows )
-      windows_data_valid_bytes = '0;
+      windows_valid_bytes = '0;
     else
       begin
         for( int i = 0; i < AST_SINK_SYMBOLS; i++ )
           begin
             if( ( i < shift_buff_head ) || ( i > shift_buff_tail ) )
-              windows_data_valid_bytes[i] = '0;
+              windows_valid_bytes[i] = '0;
             else
               begin
                 if( (shift_buff_tail-i) >= WINDOW_SIZE )
-                  windows_data_valid_bytes[i] = WINDOW_SIZE;
+                  windows_valid_bytes[i] = WINDOW_SIZE_W'(WINDOW_SIZE);
                 else
-                  windows_data_valid_bytes[i] = shift_buff_tail-i+1;
+                  windows_valid_bytes[i] = shift_buff_tail-i+1;
               end
           end
       end
   end  
 
-assign windows_data_o             = windows_data;
-assign windows_data_valid_bytes_o = windows_data_valid_bytes;
+assign windows_data_o        = windows_data;
+assign windows_valid_bytes_o = windows_valid_bytes;
 
 endmodule

@@ -13,4 +13,5 @@ parameter int MIN_STR_SIZE   = 3;
 // Must be more or eq 1 and more or eq MIN_STR_SIZE.
 parameter int MAX_STR_SIZE   = 20;
 
+parameter int HASHES_CNT     = 6;
 endpackage

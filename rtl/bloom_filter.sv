@@ -49,7 +49,6 @@ module bloom_filter #(
 //  astSourceSymbolsPerBeat             = AST_SOURCE_SYMBOLS
 
 //// Both Avalon MM slave properties: ////
-//  addressUnits                        = symbols
 //  holdTime                            = 0
 //  maximumPendingWriteTransactions     = 1
 //  setupTime                           = 0
@@ -59,12 +58,14 @@ module bloom_filter #(
 //  associatedReset                     = main_srst_i
 
 //// Avalon MM CSR slave properties: ////
+//  addressUnits                        = words
 //  readLatency                         = 1
 //  maximumPendingReadTransactions      = 1
 //  ammCsrDataWidth                     = AMM_CSR_DATA_W
 //  ammCsrAddrWidth                     = AMM_CSR_ADDR_W
 
 //// Avalon MM hash lut slave properties: ////
+//  addressUnits                        = symbols
 //  ammLutDataWidth                     = AMM_LUT_DATA_W
 //  ammLutAddrWidth                     = AMM_LUT_ADDR_W
 )(
@@ -111,21 +112,28 @@ module bloom_filter #(
   output                                       ast_source_startofpacket_o
 );
 
-localparam int MAX_STR_SIZE_W = ( MAX_STR_SIZE == 1    ) ?
-                                ( 1                    ) :
-                                ( $clog2(MAX_STR_SIZE) );
+localparam int MAX_STR_SIZE_W = $clog2(MAX_STR_SIZE) + 1;
 
 logic                                                      search_en_i;
 
 logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE-1:0][BYTE_W-1:0] windows_data;
-logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZ_W-1:0]            windows_data_valid_bytes;
-logic                                                      windows_data_ready;
+logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE_W-1:0]           windows_valid_bytes;
+logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE_W-1:0]           windows_valid_bytes_masked;
+logic [AST_SINK_SYMBOLS-1:0]                               windows_ready_per_engine;
+logic                                                      windows_ready;
 
+logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE:MIN_STR_SIZE][MAX_STR_SIZE-1:0][BYTE_W-1:0] suspect_strings_data;
+logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE:MIN_STR_SIZE]                               suspect_strings_valid;
+logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE:MIN_STR_SIZE]                               suspect_strings_ready;
+
+logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE:MIN_STR_SIZE][AMM_CSR_DATA_W-1:0]           matches_per_engine_cnt;
+logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE:MIN_STR_SIZE]                               matches_per_engine_cnt_clean_stb;
 
 ast_shift #(
+  .BYTE_W                      ( BYTE_W                     ),
   .AST_SINK_SYMBOLS            ( AST_SINK_SYMBOLS           ),
   .WINDOW_SIZE                 ( MAX_STR_SIZE               )
-) ast_deser_and_slice (
+) as (
   .clk_i                       ( main_clk_i                 ),
   .srst_i                      ( main_srst_i                ),
 
@@ -139,8 +147,47 @@ ast_shift #(
   .ast_sink_startofpacket_i    ( ast_sink_startofpacket_i   ),
 
   .windows_data_o              ( windows_data               ),
-  .windows_data_valid_bytes_o  ( windows_data_valid_bytes   ),
-  .windows_data_ready_i        ( windows_data_ready         )
+  .windows_valid_bytes_o       ( windows_valid_bytes        ),
+  .windows_ready_i             ( windows_ready              )
 );
+
+assign windows_ready = &(windows_ready_per_engine);
+assign windows_valid_bytes_masked = ( windows_ready       ) ? 
+                                    ( windows_valid_bytes ) :
+                                    ( '0                  );
+
+generate
+  for( genvar n = 0; n < AST_SINK_SYMBOLS; n++ )
+    begin: bloom_engine_gen
+      bloom_search_engine #(
+        .BYTE_W                       ( BYTE_W                              ),
+        .AMM_LUT_DATA_W               ( AMM_LUT_DATA_W                      ),
+        .AMM_LUT_ADDR_W               ( AMM_LUT_ADDR_W                      ),
+        .MATCH_CNT_W                  ( AMM_CSR_DATA_W                      ),
+        .MAX_STR_SIZE                 ( MAX_STR_SIZE                        ),
+        .HASHES_CNT                   ( HASHES_CNT                          ),
+        .MIN_STR_SIZE                 ( MIN_STR_SIZE                        )
+      ) bse (
+        .clk_i                        ( main_clk_i                          ),
+        .srst_i                       ( main_srst_i                         ),
+
+        .matches_cnt_o                ( matches_per_engine_cnt[n]           ),
+        .matches_cnt_clean_stb_i      ( matches_per_engine_cnt_clean_stb[n] ),
+        
+        .window_data_i                ( windows_data[n]                     ),
+        .window_valid_bytes_i         ( windows_valid_bytes_masked[n]       ),
+        .window_ready_o               ( windows_ready_per_engine[n]         ),
+
+        .amm_slave_lut_address_i      ( amm_slave_lut_address_i             ),
+        .amm_slave_lut_write_i        ( amm_slave_lut_write_i               ),
+        .amm_slave_lut_writedata_i    ( amm_slave_lut_writedata_i           ),
+
+        .suspect_strings_data_o       ( suspect_strings_data[n]             ),
+        .suspect_strings_valid_o      ( suspect_strings_valid[n]            ),
+        .suspect_strings_ready_i      ( suspect_strings_ready[n]            )
+      );
+    end
+endgenerate
+
 
 endmodule

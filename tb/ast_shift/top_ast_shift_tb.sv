@@ -54,8 +54,8 @@ logic                        rst;
 bit                          rst_done=0;
 
 logic [BYTES_IN_WORD-1:0][WINDOW_SIZE-1:0][BYTE_W-1:0] windows_data;
-logic [BYTES_IN_WORD-1:0][WINDOW_SIZE_W:0]             windows_data_valid_bytes;
-logic                                                  windows_data_ready;
+logic [BYTES_IN_WORD-1:0][WINDOW_SIZE_W:0]             windows_valid_bytes;
+logic                                                  windows_ready;
 
 
 // One packet queue
@@ -143,8 +143,8 @@ ast_shift #(
   .ast_sink_endofpacket_i      ( ast_src_if.eop           ),
 
   .windows_data_o              ( windows_data             ),
-  .windows_data_valid_bytes_o  ( windows_data_valid_bytes ),
-  .windows_data_ready_i        ( windows_data_ready       )
+  .windows_valid_bytes_o       ( windows_valid_bytes      ),
+  .windows_ready_i             ( windows_ready            )
 );
 
 
@@ -159,16 +159,16 @@ initial
   begin
     bit rand_bit;
 
-    windows_data_ready <= 1'b0;
+    windows_ready <= 1'b0;
     wait( rst_done )
-    windows_data_ready <= 1'b1;
+    windows_ready <= 1'b1;
     if( RANDOM_READY )
       begin
         forever
           begin
             @( posedge clk )
             rand_bit = $urandom();
-            windows_data_ready <= rand_bit;
+            windows_ready <= rand_bit;
           end
       end
   end
@@ -303,19 +303,19 @@ task automatic check_results( input packet_t input_pkts [$] );
   while( watchdog < 100 )
     begin
       @( posedge clk )
-      if( windows_data_valid_bytes == '0 )
+      if( windows_valid_bytes == '0 )
         watchdog += 1;
       else
         begin
-          if( windows_data_ready )
+          if( windows_ready )
             begin
               for( int i = 0; i < BYTES_IN_WORD; i++ )
                 begin
-                  if( windows_data_valid_bytes[i] != '0 )
+                  if( windows_valid_bytes[i] != '0 )
                     begin
                       watchdog = 0;
-                      window_bytes = new[ windows_data_valid_bytes[i] ];
-                      for( int j = 0; j < windows_data_valid_bytes[i]; j++ )
+                      window_bytes = new[ windows_valid_bytes[i] ];
+                      for( int j = 0; j < windows_valid_bytes[i]; j++ )
                         window_bytes[j] = windows_data[i][j];
                       res_windows.push_back( window_bytes );
                     end
