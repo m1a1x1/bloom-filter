@@ -54,7 +54,7 @@ logic                        rst;
 bit                          rst_done=0;
 
 logic [BYTES_IN_WORD-1:0][WINDOW_SIZE-1:0][BYTE_W-1:0] windows_data;
-logic [BYTES_IN_WORD-1:0][WINDOW_SIZE_W-1:0]           windows_data_valid_bytes;
+logic [BYTES_IN_WORD-1:0][WINDOW_SIZE_W:0]             windows_data_valid_bytes;
 logic                                                  windows_data_ready;
 
 
@@ -255,6 +255,14 @@ function bit compare_data( input bit   [BYTE_W-1:0] ref_windows[][][],
               //$display("Found match" );
               //$display( res_find );
               ;
+            end
+        end
+
+      if( i == ( ref_windows.size() - 1 ) )
+        begin
+          if( res_windows.size() != 0 )
+            begin
+              $error( "To many windows in final packet!" );
             end
         end
     end
