@@ -1,7 +1,7 @@
 module ast_shift #(
   parameter int BYTE_W           = 8,
   parameter int AST_SINK_SYMBOLS = 8,
-  parameter bit AST_SINK_ORDER   = 1,
+  parameter bit AST_SINK_ORDER   = 1'b1,
   parameter int AST_SINK_EMPTY_W = ( AST_SINK_SYMBOLS  == 1   ) ?
                                    ( 1                        ) :
                                    ( $clog2(AST_SINK_SYMBOLS) ),

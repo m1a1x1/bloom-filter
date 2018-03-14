@@ -20,23 +20,21 @@ module hasher #(
 );
 
 logic [HASHES_CNT-1:0][HASH_W-1:0] hashes;
-logic [HASHES_CNT-1:0][HASH_W-1:0] hashes_w;
 logic [STR_SIZE-1:0][BYTE_W-1:0]   data_in;
-logic [STR_SIZE-1:0][BYTE_W-1:0]   data_out;
 logic                              valid_in;
-logic                              valid_out;
 logic                              hashes_data_ready;
 
+// TODO: проверить проверку размеров!!!
 initial
   begin
-    if( HASHES_W > MAX_HASH_W )
+    if( HASH_W > MAX_HASH_W )
       begin
         $error("Maximum supported hash width is %d", MAX_HASH_W );
         $stop();
       end
-    if( HASHES_CNT > CRC_INITS.size() )
+    if( HASHES_CNT > $size(CRC_INITS) )
       begin
-        $error("Maximum supported hashes per string is %d. For more inforamtion see ./rtl/crc_pkg.sv", CRC_INITS.size() );
+        $error("Maximum supported hashes per string is %d. For more inforamtion see ./rtl/crc_pkg.sv", $size(CRC_INITS) );
         $stop();
       end
   end
@@ -57,7 +55,8 @@ data_delay #(
 );
 
 generate
-  for( genvar n = 0; n < HASHES_CNT; n++ )
+  genvar n;
+  for( n = 0; n < HASHES_CNT; n++ )
     begin: hash_f
       crc #(
         .BYTE_W   ( BYTE_W          ),
@@ -66,27 +65,24 @@ generate
         .STR_SIZE ( STR_SIZE        )
       ) crc (
         .data_i   ( data_in         ),
-        .res_o    ( hashes_w[n]     )
+        .res_o    ( hashes[n]       )
       );
     end
 endgenerate
 
 data_delay #(
-  .DATA_W    ( STR_SIZE*BYTE_W        )
+  .DATA_W    ( (STR_SIZE*BYTE_W)+(HASH_W*HASHES_CNT) )
 ) d_out (
-  .clk_i     ( clk_i                  ),
-  .srst_i    ( srst_i                 ),
+  .clk_i     ( clk_i                                 ),
+  .srst_i    ( srst_i                                ),
 
-  .data_i    ( data_in                ),
-  .valid_i   ( valid_in               ),
-  .ready_o   ( hashes_data_ready      ),
+  .data_i    ( {data_in,hashes}                      ),
+  .valid_i   ( valid_in                              ),
+  .ready_o   ( hashes_data_ready                     ),
 
-  .data_o    ( data_o                 ),
-  .valid_o   ( hashes_data_valid_o    ),
-  .ready_i   ( hashes_data_ready_i    )
+  .data_o    ( {data_o,hashes_o}                     ),
+  .valid_o   ( hashes_data_valid_o                   ),
+  .ready_i   ( hashes_data_ready_i                   )
 );
-
-assign hashes_o            = hashes;
-assign hashes_data_valid_o = valid_out;
 
 endmodule

@@ -13,7 +13,8 @@ module data_delay #(
   input               ready_i
 );
 
-logic  valid_d;
+logic              valid_d;
+logic [DATA_W-1:0] data_d;
 
 assign ready_o = ready_i || !(valid_d);
 

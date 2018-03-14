@@ -8,9 +8,6 @@ module one_str_size_bloom_engine #(
   input                                 clk_i,
   input                                 srst_i,
 
-  output [MATCH_CNT_W-1:0]              matches_cnt_o,
-  input                                 matches_cnt_clean_stb_i,
-                            
   input  [STR_SIZE-1:0][BYTE_W-1:0]     data_i,
   input                                 valid_i,
   output                                ready_o,
@@ -34,9 +31,7 @@ logic                              hashes_data_ready_d;
 
 logic                              amm_masters_lut_readdata_valid;
 
-logic                              suspect_string_ready;
 logic                              suspect_string_valid;
-logic [STR_SIZE-1:0][BYTE_W-1:0]   suspect_string_data;
 logic [HASHES_CNT-1:0]             suspect_string_result_saved;
 logic [HASHES_CNT-1:0]             suspect_string_result;
 
@@ -104,21 +99,31 @@ data_delay #(
 // Result from Hash LUT register
 always_ff @( posedge clk_i )
   begin
-    if( amm_masters_lut_readdata_valid )
+    if( srst_i )
+      suspect_string_result_saved <= amm_masters_lut_readdata_i;
+    else
       begin
-        if( !hashes_data_ready_d )
-          suspect_string_result_saved <= amm_masters_lut_readdata_i;
+        if( amm_masters_lut_readdata_valid )
+          begin
+            if( !hashes_data_ready_d )
+              suspect_string_result_saved <= amm_masters_lut_readdata_i;
+          end
       end
   end
 
 always_ff @( posedge clk_i )
   begin
-    if( hashes_data_ready_d && hashes_data_valid_d )
+    if( srst_i )
+      suspect_string_result <= '0;
+    else
       begin
-        if( amm_masters_lut_readdata_valid )
-          suspect_string_result <= amm_masters_lut_readdata_i;
-        else
-          suspect_string_result <= suspect_string_result_saved;
+        if( hashes_data_ready_d && hashes_data_valid_d )
+          begin
+            if( amm_masters_lut_readdata_valid )
+              suspect_string_result <= amm_masters_lut_readdata_i;
+            else
+              suspect_string_result <= suspect_string_result_saved;
+          end
       end
   end
 
