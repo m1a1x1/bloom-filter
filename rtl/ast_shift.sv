@@ -110,9 +110,9 @@ generate
   end
 endgenerate
 
-assign ast_sink_ready_o = ( ( state == SHIFT_INPUT_S ) && en_i            ) ?
+assign ast_sink_ready_o = ( ( state == SHIFT_INPUT_S ) && en_i              ) ?
                           ( ( head_in_windows                             ) ?
-                            ( saved_windows_ready || windows_ready_i ) :
+                            ( saved_windows_ready || windows_ready_i      ) :
                             ( 1'b1                                        ) ) :
                           ( 1'b0                                            );
 
@@ -169,7 +169,7 @@ always_ff @( posedge clk_i )
             if( ast_sink_valid_i && ast_sink_ready_o )
               begin
                 if( ast_sink_startofpacket_i )
-                  shift_buff_head <= SHIFT_BUFF_SIZE - SHIFT_BUFF_PTRS_W'(AST_SINK_SYMBOLS);
+                  shift_buff_head <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE) - SHIFT_BUFF_PTRS_W'(AST_SINK_SYMBOLS);
                 else
                   begin
                     if( head_in_windows ) 
@@ -208,9 +208,9 @@ always_ff @( posedge clk_i )
             if( ast_sink_valid_i && ast_sink_ready_o )
               begin
                 if( ast_sink_endofpacket_i )
-                  shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE) - 1 - ast_sink_empty_i;
+                  shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE - 1) - ast_sink_empty_i;
                 else
-                  shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE) - 1;
+                  shift_buff_tail <= SHIFT_BUFF_PTRS_W'(SHIFT_BUFF_SIZE - 1);
               end
           end
         else
@@ -247,7 +247,7 @@ always_comb
                 if( (shift_buff_tail-i) >= WINDOW_SIZE )
                   windows_valid_bytes[i] = WINDOW_SIZE_W'(WINDOW_SIZE);
                 else
-                  windows_valid_bytes[i] = shift_buff_tail-i+1;
+                  windows_valid_bytes[i] = WINDOW_SIZE_W'(shift_buff_tail-i+1);
               end
           end
       end

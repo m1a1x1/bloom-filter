@@ -20,7 +20,7 @@ module data_to_ast #(
   // Data which will be streamed
   input   [DATA_SYMBOLS-1:0][BYTE_W-1:0]             data_i,
   input                                              data_valid_i,
-  output                                             done_o,
+  output                                             ready_o,
 
   output  [AST_SOURCE_SYMBOLS-1:0][BYTE_W-1:0]       ast_source_data_o,
   input                                              ast_source_ready_i,
@@ -34,8 +34,10 @@ localparam DATA_MOD = ( DATA_SYMBOLS % AST_SOURCE_SYMBOLS == 0 ) ?
                       ( AST_SOURCE_SYMBOLS                     ) :
                       ( DATA_SYMBOLS % AST_SOURCE_SYMBOLS      ); 
 
+localparam DATA_PTR_W = $clog2(DATA_SYMBOLS) + 1;
+
 logic [DATA_SYMBOLS*BYTE_W-1:0]             data;
-logic [$clog2(DATA_SYMBOLS):0]              data_ptr;
+logic [DATA_PTR_W-1:0]                      data_ptr;
 
 logic [AST_SOURCE_SYMBOLS-1:0][BYTE_W-1:0]  ast_data;
 logic [AST_SOURCE_SYMBOLS-1:0][BYTE_W-1:0]  ast_data_rev;
@@ -77,7 +79,7 @@ always_ff @( posedge clk_i )
             data_ptr <= '0;
           else
             if( ( DATA_SYMBOLS - data_ptr ) > AST_SOURCE_SYMBOLS )
-              data_ptr <= data_ptr + AST_SOURCE_SYMBOLS;
+              data_ptr <= data_ptr + DATA_PTR_W'(AST_SOURCE_SYMBOLS);
       end
   end
 
@@ -110,8 +112,8 @@ endgenerate
 assign ast_source_startofpacket_o = ( ( data_ptr == '0 ) && run_flag );
 assign ast_source_endofpacket_o   = ( ( data_ptr == ( DATA_SYMBOLS - DATA_MOD  ) ) && run_flag );
 assign ast_source_valid_o         = run_flag;
-assign ast_source_empty_o         = ( AST_SOURCE_SYMBOLS - DATA_MOD );
+assign ast_source_empty_o         = AST_SOURCE_EMPTY_W'( AST_SOURCE_SYMBOLS - DATA_MOD );
 
-assign done_o = ast_source_endofpacket_o && ast_source_valid_o && ast_source_ready_i;
+assign ready_o = !run_flag;
 
 endmodule

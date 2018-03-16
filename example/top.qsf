@@ -54,27 +54,7 @@ set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_RO
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name NUM_PARALLEL_PROCESSORS 4
 
-set_global_assignment -name SYSTEMVERILOG_FILE top.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/amm_writer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/ast_shift.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_filter.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_filter_csr.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_filter_pkg.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_search_engine.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/crc.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/crc_pkg.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/data_dc_fifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/data_delay.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/data_to_ast.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/hash_lut.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/hasher.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/one_hot_arb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/one_hot_ast_mux.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/one_str_size_bloom_engine.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/strings_mux.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/true_dp_ram.sv
 
-set_global_assignment -name SDC_FILE top.sdc
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 
@@ -91,8 +71,6 @@ set_global_assignment -name QII_AUTO_PACKED_REGISTERS NORMAL
 set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
 
 set_instance_assignment -name GLOBAL_SIGNAL "GLOBAL CLOCK" -to clk_156_25_i
-
-
 
 set_global_assignment -name MUX_RESTRUCTURE OFF
 set_global_assignment -name ROUTER_CLOCKING_TOPOLOGY_ANALYSIS ON
@@ -120,5 +98,33 @@ set_instance_assignment -name VIRTUAL_PIN ON -to ast_source_empty_o
 set_instance_assignment -name VIRTUAL_PIN ON -to ast_source_endofpacket_o
 set_instance_assignment -name VIRTUAL_PIN ON -to ast_source_startofpacket_o
 
+
+set_global_assignment -name QIP_FILE pll_125/pll.qip
+set_global_assignment -name SYSTEMVERILOG_FILE top.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/amm_writer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/ast_shift.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_filter.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_filter_csr.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_filter_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/bloom_search_engine.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/crc.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/crc_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/data_dc_fifo.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/data_delay.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/data_delay_pipeline_ready.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/data_to_ast.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/hash_lut.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/hasher.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/one_hot_arb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/one_hot_ast_mux.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/one_str_size_bloom_engine.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/strings_mux.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/true_dp_ram.sv
+set_global_assignment -name SDC_FILE top.sdc
+set_global_assignment -name STATE_MACHINE_PROCESSING "ONE-HOT"
+set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 2.0
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT NORMAL
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
+set_global_assignment -name REMOVE_DUPLICATE_REGISTERS OFF
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

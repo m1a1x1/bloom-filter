@@ -1,5 +1,3 @@
-import bloom_filter_pkg::*;
-
 parameter int AST_SINK_SYMBOLS = 8;
 parameter bit AST_SINK_ORDER   = 1;
 parameter int AST_SINK_EMPTY_W = ( AST_SINK_SYMBOLS  == 1   ) ?
@@ -12,9 +10,14 @@ parameter int AST_SOURCE_EMPTY_W = ( AST_SOURCE_SYMBOLS == 1    ) ?
                                    ( 1                          ) :
                                    ( $clog2(AST_SOURCE_SYMBOLS) );
 
+parameter int AMM_CSR_DATA_W   = 16;
+parameter int AMM_CSR_ADDR_W   = 12;
+
+parameter int AMM_LUT_DATA_W   = 8;
+parameter int AMM_LUT_ADDR_W   = 18;
+
 module top(
   input                                        clk_156_25_i,
-  input                                        clk_125_i,
 
   input                                        srst_156_25_i,
   input                                        srst_125_i,
@@ -44,6 +47,8 @@ module top(
   output                                       ast_source_startofpacket_o
 );
 
+logic                                      clk_125_i;
+
 logic                                      srst_125;
 logic                                      srst_156_25;
 
@@ -71,6 +76,12 @@ logic [AST_SOURCE_EMPTY_W-1:0]             ast_source_empty;
 logic                                      ast_source_endofpacket;
 logic                                      ast_source_startofpacket;
 
+pll pll_156_25_in_125(
+  .refclk                                 ( clk_156_25_i      ),
+  .rst                                    ( srst_156_25_i     ),
+  .outclk_0                               ( clk_125_i         )
+);
+
 always_ff @( posedge clk_156_25_i )
   begin
     srst_156_25                <= srst_156_25_i;
@@ -87,11 +98,23 @@ always_ff @( posedge clk_156_25_i )
     amm_slave_csr_writedata    <= amm_slave_csr_writedata_i;
 
     amm_slave_lut_address      <= amm_slave_lut_address_i;
-    amm_slave_lut_write        <= amm_slave_csr_write_i;
+    amm_slave_lut_write        <= amm_slave_lut_write_i;
     amm_slave_lut_writedata    <= amm_slave_lut_writedata_i;
 
     amm_slave_csr_readdata_o   <= amm_slave_csr_readdata;
     ast_sink_ready_o           <= ast_sink_ready;
+
+   /*
+    srst_125                   <= srst_125_i;
+
+    ast_source_data_o          <= ast_source_data;
+    ast_source_valid_o         <= ast_source_valid;
+    ast_source_empty_o         <= ast_source_empty;
+    ast_source_endofpacket_o   <= ast_source_endofpacket;
+    ast_source_startofpacket_o <= ast_source_startofpacket;
+
+    ast_source_ready           <= ast_source_ready_i;
+    */
   end
 
 always_ff @( posedge clk_125_i )
@@ -107,9 +130,8 @@ always_ff @( posedge clk_125_i )
     ast_source_ready           <= ast_source_ready_i;
   end
 
-//********************************************************************
-//****************************** DUT *********************************
 bloom_filter #(
+  .AST_SINK_SYMBOLS           ( AST_SINK_SYMBOLS          ),
   .AST_SINK_ORDER             ( AST_SINK_ORDER            ), 
   .AST_SOURCE_SYMBOLS         ( AST_SOURCE_SYMBOLS        ),
   .AST_SOURCE_ORDER           ( AST_SOURCE_ORDER          )
@@ -144,5 +166,4 @@ bloom_filter #(
   .ast_source_endofpacket_o   ( ast_source_endofpacket    ),
   .ast_source_startofpacket_o ( ast_source_startofpacket  )
 );
-
 endmodule

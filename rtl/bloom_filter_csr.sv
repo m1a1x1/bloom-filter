@@ -44,8 +44,8 @@ always_comb
     all_regs[ HASH_LUT_CLEAN ]    = '0;
     all_regs[ HASH_LUT_CLEAN ][0] = !hash_lut_clean_done_i;
 
-    for( int i = MATCH_CNT_BASE; i < MATCH_CNT_CNT; i++ )
-      all_regs[i] = matches_cnt_i[MATCH_CNT_BASE-i];
+    for( int i = 0; i < MATCH_CNT_CNT; i++ )
+      all_regs[MATCH_CNT_BASE+i] = matches_cnt_i[i];
   end
 
 always_ff @( posedge clk_i )

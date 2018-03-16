@@ -55,9 +55,9 @@ module hash_lut #(
   output logic [MAX_STR_SIZE:MIN_STR_SIZE][HASHES_CNT-1:0]             amm_slaves_lut_rd_readdata_o
 );
 
-localparam int STR_SIZE_CNT    = MAX_STR_SIZE - MIN_STR_SIZE + 1;
+localparam int STR_SIZES_CNT   = MAX_STR_SIZE - MIN_STR_SIZE + 1;
 localparam int M10K_W          = 13;
-localparam int MEM_BLOCKS_CNT  = calc_mem_blocks(STR_SIZE_CNT, HASHES_CNT, HASH_W, MODE, M10K_W);
+localparam int MEM_BLOCKS_CNT  = calc_mem_blocks(STR_SIZES_CNT, HASHES_CNT, HASH_W, MODE, M10K_W);
 localparam int MEM_BLOCKS_W    = ( ( MODE == 0 ) && ( HASH_W < M10K_W ) ) ?
                                  ( M10K_W                               ) :
                                  ( HASH_W                               );

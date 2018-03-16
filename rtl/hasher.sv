@@ -39,7 +39,7 @@ initial
       end
   end
 
-data_delay #(
+data_delay_pipeline_ready #(
   .DATA_W    ( STR_SIZE*BYTE_W        )
 ) d_in (
   .clk_i     ( clk_i                  ),

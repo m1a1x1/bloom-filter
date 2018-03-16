@@ -26,7 +26,7 @@ always_comb
     res = WIDTH'(INIT);
     for( int i = 0; i < STR_SIZE; i++ )
       begin
-        res = crc_8d95( data_i[i], res );
+        res = WIDTH'(crc_8d95( data_i[i], res ));
       end
   end
 

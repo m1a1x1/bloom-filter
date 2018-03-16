@@ -119,7 +119,6 @@ logic                                                                           
 
 logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE-1:0][BYTE_W-1:0]                            windows_data;
 logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE_W-1:0]                                      windows_valid_bytes;
-logic [AST_SINK_SYMBOLS-1:0][MAX_STR_SIZE_W-1:0]                                      windows_valid_bytes_masked;
 logic [AST_SINK_SYMBOLS-1:0]                                                          windows_ready_per_engine;
 logic                                                                                 windows_ready;
 
@@ -182,9 +181,6 @@ ast_shift #(
 );
 
 assign windows_ready = &(windows_ready_per_engine);
-assign windows_valid_bytes_masked = ( windows_ready       ) ? 
-                                    ( windows_valid_bytes ) :
-                                    ( '0                  );
 
 amm_writer #(
   .AMM_DATA_W             ( AMM_LUT_DATA_W                      ),
@@ -230,7 +226,7 @@ generate
         .matches_cnt_clean_stb_i      ( matches_per_engine_cnt_clean_stb[n] ),
         
         .window_data_i                ( windows_data[n]                     ),
-        .window_valid_bytes_i         ( windows_valid_bytes_masked[n]       ),
+        .window_valid_bytes_i         ( windows_valid_bytes[n]              ),
         .window_ready_o               ( windows_ready_per_engine[n]         ),
 
         .amm_slave_lut_address_i      ( amm_slave_lut_address               ),
@@ -249,12 +245,12 @@ strings_mux #(
   .WINDOW_CNT                             ( AST_SINK_SYMBOLS           ),
   .MIN_STR_SIZE                           ( MIN_STR_SIZE               ),
   .MAX_STR_SIZE                           ( MAX_STR_SIZE               ),
-  .FIFO_DEPTH                             ( PER_STRING_FIFO_DEPTH      ),
+  .OUTPUT_FIFO_DEPTH                      ( OUTPUT_FIFO_DEPTH          ),
   .AST_SOURCE_SYMBOLS                     ( AST_SOURCE_SYMBOLS         ),
   .AST_SOURCE_ORDER                       ( AST_SOURCE_ORDER           )
 ) mux (
-  .sink_clk_i                             ( main_clk_i                 ),
-  .sink_srst_i                            ( main_srst_i                ),
+  .main_clk_i                             ( main_clk_i                 ),
+  .main_srst_i                            ( main_srst_i                ),
 
   .source_clk_i                           ( ast_source_clk_i           ),
   .source_srst_i                          ( ast_source_srst_i          ),
