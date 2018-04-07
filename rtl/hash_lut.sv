@@ -9,10 +9,10 @@ function automatic int calc_mem_blocks ( input int str_size_cnt, hash_cnt,
       begin
         if( hash_w < mem_w )
           begin
-            if( (hash_cnt % 2) == 0 ) 
-              mem_block_cnt = str_size_cnt * (hash_cnt/2);
+            if( ((str_size_cnt * hash_cnt) % 2) == 0 ) 
+              mem_block_cnt = (str_size_cnt * hash_cnt)/2;
             else
-              mem_block_cnt = str_size_cnt * ((hash_cnt/2) + 1);
+              mem_block_cnt = (str_size_cnt * hash_cnt)/2 + 1;
           end
         else
           begin
@@ -102,12 +102,12 @@ generate
   genvar k;
   if( (MODE == 0) && ( HASH_W >= M10K_W ) )
     begin: m0_block_per_hash
-      assign addr_p1 = '0; 
+      assign addr_p1_rd = '0; 
       for( k = 0; k < MEM_BLOCKS_CNT; k++ )
         begin: rd_addr
           localparam int K_P = (k/HASHES_CNT);
 
-          assign addr_p0_rd[k] = amm_slaves_lut_rd_address_i[MIN_STR_SIZE+(k/HASHES_CNT)][k%HASHES_CNT];
+          assign addr_p0_rd[k] = amm_slaves_lut_rd_address_i[MIN_STR_SIZE+K_P][k%HASHES_CNT];
           assign amm_slaves_lut_rd_readdata_o[MIN_STR_SIZE+K_P][k%HASHES_CNT] = rd_data_p0[k];
         end
     end
@@ -118,7 +118,7 @@ generate
           for( k = 0; k < MEM_BLOCKS_CNT; k++ )
             begin: rd_addr
               localparam int K_P0 = ( k * 2 );
-              localparam bit LAST_NOT_USED = ( HASHES_CNT % 2 ) != 0;
+              localparam bit LAST_NOT_USED = ( HASHES_CNT*STR_SIZES_CNT % 2 ) != 0;
               localparam int K_P1 = ( ( LAST_NOT_USED ) && ( k == ( MEM_BLOCKS_CNT - 1 ) ) ) ?
                                     ( k * 2                                                ) :
                                     ( ( k * 2 ) + 1                                        );

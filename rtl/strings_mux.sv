@@ -68,14 +68,15 @@ generate
           logic [n-1:0][BYTE_W-1:0]        strings_data_d;
           logic                            strings_valid_d;
           logic                            strings_ready_d;
-          
+ /*         
           always_comb
             begin
               strings_data_d  = strings_data_i[w][n][n-1:0];
               strings_valid_d = strings_valid_i[w][n];
               strings_ready_o[w][n] = strings_ready_d;
             end
-/*
+*/
+
           data_delay_pipeline_ready #(
             .DATA_W                     ( n*BYTE_W                    )
           ) d_in (
@@ -90,7 +91,7 @@ generate
             .valid_o                    ( strings_valid_d             ),
             .ready_i                    ( strings_ready_d             )
           );
-*/
+
           data_to_ast #(
             .BYTE_W                     ( BYTE_W                         ),
             .DATA_SYMBOLS               ( n                              ),

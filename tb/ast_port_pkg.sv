@@ -45,11 +45,14 @@ class ast_port #(
   mailbox #( channel_data_t ) tx_channel_fifo;
   mailbox #( errors_data_t  ) tx_errors_fifo;
 
+  string                      rx_fname;
+
   function new( virtual avalon_st_if #( .DATA_W    ( DATA_W    ),
                                         .EMPTY_W   ( EMPTY_W   ),
                                         .ERROR_W   ( ERROR_W   ),
                                         .TUSER_W   ( TUSER_W   ),
-                                        .CHANNEL_W ( CHANNEL_W ) ) ast_if );
+                                        .CHANNEL_W ( CHANNEL_W ) ) ast_if,
+                                     string rx_fname = " ");
     this.ast_if          = ast_if;
     this.rx_fifo         = new ();
     this.rx_channel_fifo = new ();
@@ -60,10 +63,79 @@ class ast_port #(
     this.tx_channel_fifo = new ();
     this.tx_errors_fifo  = new ();
 
+    this.rx_fname        = rx_fname;
+
+
     this.init_interface();
+  endfunction
+
+  function static int next_frame( input string fname, output packet_data_t read_pkt );
+    int         fpos;
+    int         real_len;
+    logic [7:0] _byte;
+    string      line;
+    int         next_space;
+   
+    integer fd;
+    integer code;
+    
+    fd   = $fopen( fname, "r" );
+    code = $fseek( fd, fpos, 0 );
+    code = $fgets( line, fd);
+    code = $feof( fd );
+    read_pkt = {};
+
+    if( code != 0 ) 
+      begin
+        return -1;
+      end
+  
+    while( 1 )
+      begin
+        code = $sscanf( line, "%d", _byte);
+
+        for( int i=0; i < line.len(); i++)
+          if( line.getc(i) == " " )
+            begin
+              next_space = i;
+              break;
+            end
+           
+        line = line.substr(next_space+1,line.len()-1);
+        read_pkt.push_back( _byte );
+
+        if( line.len() == 1 )
+          break;
+      end
+
+    fpos = $ftell( fd );
+    
+    $fclose( fd );
+    return 0;
   endfunction
   
   `define CB @( posedge ast_if.clk );
+
+  task file_to_rx_fifo();
+    if( this.rx_fname != " " )
+      begin
+        //$display("Reading packets from %s", this.pkt_rx_fname );
+        forever
+          begin
+            packet_data_t rd_pkt;
+
+            if( next_frame( this.rx_fname, rd_pkt ) == 0 )
+              begin
+                this.rx_fifo.put( rd_pkt );
+              end
+            else
+              begin
+                return;
+              end
+          end
+      end
+  endtask
+
 
   task rx_monitor();
     packet_data_t  rx_pkt;
@@ -133,6 +205,9 @@ class ast_port #(
   endtask
   
   task run();
+
+    file_to_rx_fifo();
+
     fork
       rx_monitor();
       tx_monitor();

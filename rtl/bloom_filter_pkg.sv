@@ -1,7 +1,6 @@
 package bloom_filter_pkg;
 
 parameter int BYTE_W           = 8;
-
 parameter int AST_SINK_SYMBOLS = 8;
 
 parameter int AMM_CSR_DATA_W   = 16;
@@ -19,15 +18,15 @@ parameter int AMM_LUT_DATA_W   = 8;
 //   length and current mode.
 parameter int AMM_LUT_ADDR_W = 18;
 
-parameter int MIN_STR_SIZE = 5;
+parameter int MIN_STR_SIZE = 3;
 
 // Maximum string length for search.
 // Must be more or eq 1 and more or eq MIN_STR_SIZE and less then 32.
-parameter int MAX_STR_SIZE = 14;
+parameter int MAX_STR_SIZE = 5;
 
 parameter int HASHES_CNT = 6;
 
-parameter int HASH_W     = 13;
+parameter int HASH_W     = 10;
 
 // Mode for storing hash functions:
 //   0 -- each hash function is in seporate memory space

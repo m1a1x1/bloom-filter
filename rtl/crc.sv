@@ -10,7 +10,7 @@ module crc #(
   output [WIDTH-1:0]                res_o
 );
 
-logic [WIDTH-1:0] res;
+logic [MAX_HASH_W-1:0] res;
 
 initial
   begin
@@ -23,13 +23,13 @@ initial
 
 always_comb
   begin
-    res = WIDTH'(INIT);
+    res = MAX_HASH_W'(INIT);
     for( int i = 0; i < STR_SIZE; i++ )
       begin
-        res = WIDTH'(crc_8d95( data_i[i], res ));
+        res = MAX_HASH_W'(crc_8d95( data_i[i], res ));
       end
   end
 
-assign res_o = res;
+assign res_o = res[WIDTH-1:0];
 
 endmodule

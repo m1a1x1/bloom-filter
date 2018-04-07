@@ -14,6 +14,10 @@ parameter bit IN_PACKET_BREAK  = 0;
 // Enable random ready (sink ready will be random)
 parameter bit RANDOM_READY     = 1'b0;
 
+parameter string PACKETS_TO_SEND_FNAME = "packets_to_send";
+parameter string REF_PACKETS_FNAME     = "ref_packets";
+parameter string HASH_LUT_DUMP_FNAME   = "hash_lut_dump";
+
 logic                        clk;
 logic                        rst;
 bit                          rst_done=0;
@@ -163,7 +167,7 @@ bloom_filter #(
 
 initial
   begin
-    ast_src_p = new( ast_src_if );
+    ast_src_p = new( ast_src_if, PACKETS_TO_SEND_FNAME );
     wait( rst_done );
     ast_src_p.run( );
   end
@@ -269,6 +273,93 @@ task config_bf( );
   csr_write_t( EN, AMM_CSR_DATA_W'(1) );
 endtask
 
+task check( input string fname );
+  packet_t all_ref_data [$];
+  packet_t dut_packet;
+  int res [];
+  static int watchdog = 0;
+
+  forever
+    begin
+      packet_t rd_pkt;
+
+      if( ast_snk_p.next_frame( fname, rd_pkt ) == 0 )
+        begin
+          all_ref_data.push_back( rd_pkt );
+        end
+      else
+        begin
+          break;
+        end
+    end
+
+  while( all_ref_data.size() > 0 )
+    begin
+      ast_snk_p.tx_fifo.get( dut_packet );
+      res = all_ref_data.find_first_index with ( item == dut_packet );
+      if( res.size() == 0 )
+        begin
+          $error( "Unexpeced search result from DUT. String:\n\t", dut_packet );
+          $display( "was not in reference results");
+          $stop();
+        end
+      else
+        begin
+          $display( "String ", all_ref_data[res[0]], "was found!" );
+          all_ref_data.delete( res[0] ); 
+        end
+    end
+
+ while( watchdog < 100 )
+   begin
+     @( posedge clk );
+     watchdog += 1;
+   end
+
+ if( ast_snk_p.tx_fifo.num() > 0 )
+   begin
+     static int cnt = 0;
+     $error( "Unexpeced %d search results from DUT. Strings:\n\t", ast_snk_p.tx_fifo.num() );
+     while( ast_snk_p.tx_fifo.num() > 0 )
+       begin
+         ast_snk_p.tx_fifo.get( dut_packet );
+         $display( "\n\tRes # %d", cnt, dut_packet );
+         cnt += 1;
+       end
+     $stop();
+   end
+
+endtask
+
+task write_dump( input string fname );
+  integer fd;
+  integer code;
+  bit [AMM_LUT_ADDR_W-1:0] addr;
+  bit [AMM_CSR_DATA_W-1:0] data;
+
+  fd = $fopen( fname, "r" );
+  $display( "Start reading hash table dump from %s", fname);
+  while( 1 )
+    begin
+      code = $fscanf( fd, "%d %d", addr, data);
+      code = $feof( fd );
+
+      if( code != 0 )
+        begin
+         @( posedge clk );
+          lut_write <= 1'b0;
+          break;
+        end
+
+      @( posedge clk );
+      lut_write     <= 1'b1;
+      lut_address   <= addr;;
+      lut_writedata <= data;;
+    end
+  $fclose( fd );
+  $display( "Hash table dump loaded!");
+endtask
+
 //********************************************************************
 //************************* MAIN FLOW ********************************
 
@@ -277,9 +368,9 @@ packet_t tasks[$];
 initial
   begin
     wait( rst_done )
+    write_dump( HASH_LUT_DUMP_FNAME );
     config_bf( );
-    tasks.push_back( gen_one_packet( 515 ) );
-    send_tasks( tasks );
+    check( REF_PACKETS_FNAME );
     $display( "Test done, No errors" );
     $stop();
   end

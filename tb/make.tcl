@@ -10,6 +10,7 @@ vlog -sv ../rtl/bloom_filter_csr.sv
 vlog -sv ../rtl/crc.sv
 vlog -sv ../rtl/data_dc_fifo.sv
 vlog -sv ../rtl/data_delay.sv
+vlog -sv ../rtl/data_delay_pipeline_ready.sv
 vlog -sv ../rtl/data_to_ast.sv
 vlog -sv ../rtl/hash_lut.sv
 vlog -sv ../rtl/one_hot_arb.sv
