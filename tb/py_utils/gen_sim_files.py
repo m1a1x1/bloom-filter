@@ -35,10 +35,6 @@ class BloomOneLen( ):
     for i in range( self.hashes_cnt ):
       if ( self.rom[i][ hashes_results[i] ] == 0 ):
         return False
-
-    for i in string:
-        print( i )
-    print( hashes_results )
     return True
 
   def check_long_string ( self, long_string ):
@@ -52,7 +48,6 @@ class BloomOneLen( ):
 
   def check_string ( self, string ):
     if self.check_match( string ):
-      print( string )
       return True
     return False
 
@@ -80,7 +75,6 @@ def write_rom_dump( rom, mode, hashes_cnt, hash_w, fname ):
 
     f = open( fname, 'w' )
     for i in range(blocks_cnt):
-        print( i )
         if( mode == 0 ):
           if( hash_w >= M10K_ADDR_W ):
             addr_base = i << hash_w
@@ -238,6 +232,21 @@ def gen_data_with_strings( strings, data ):
       data_with_strings.append(new_data)
   return ( data_with_strings )
 
+def get_strings_from_file( fname ):
+  with open(fname, 'r') as f:
+    lines = f.readlines()
+
+  lines = [_.strip() for _ in lines]
+
+  strings = [ [] for _ in range(MAX_STRING_LEN+1)]
+  for l in lines:
+    if( ( len(l) < MIN_STRING_LEN ) or ( len(l) > MAX_STRING_LEN ) ):
+      print("Line: %s is incorrect. Change setting or delete this line from %s file" % (l,fname))
+      exit()
+    else:
+      strings[len(l)].append(bytes(l,'utf-8'))
+  return strings
+
 if __name__ == "__main__":
 
   parser = argparse.ArgumentParser( description='Reference model of Bloom pattern search.', prefix_chars='--', formatter_class=RawTextHelpFormatter)
@@ -258,6 +267,10 @@ Posible values:\n \
                       help='Hash width = maximum amount of string in memory.\n \
 Posible values:\n \
 * 0 < hashw <= 16\n')
+
+  parser.add_argument('--str_fname', metavar='str_fname', type=str,
+                      help='Optional argument. Use str_fname for source\
+of string to gen lut hash table dump\n')
 
   args = parser.parse_args()
   parsed_args = vars(args)
@@ -298,24 +311,36 @@ Posible values:\n \
     print( "Use -h for help" )
     sys.exit( 0 ) 
 
+  if( parsed_args['str_fname'] is not None ):
+    strings = get_strings_from_file( parsed_args['str_fname'] )
+    user_string = True
+  else:
+    strings = gen_unic_strings(STRING_TO_ADD_CNT*2)
+    user_string = False
+
+
   crc_cut   = functools.partial(crc_wrap, hash_width=hash_w)
   crc_inits = gen_crc_inits(hashes_cnt)
 
   m10k_cnt_2p = count_m10k( MAX_STRING_LEN-MIN_STRING_LEN+1, hash_w, hashes_cnt )
-
   rom = init_rom( hashes_cnt, hash_w )
-  unic_strings = gen_unic_strings(STRING_TO_ADD_CNT*2)
   strings_in_rom = list()
   strings_not_in_rom = list()
 
   for _len in range(MIN_STRING_LEN,MAX_STRING_LEN+1):
-    unic_strings_len = unic_strings[_len]
-    strings_to_add   = unic_strings_len[:STRING_TO_ADD_CNT]
+    strings_len    = strings[_len]
+    if( user_string ):
+      strings_to_add = strings_len
+    else:
+      strings_to_add = strings_len[:STRING_TO_ADD_CNT]
     rom = fill_rom( rom, strings_to_add, hashes_cnt, crc_inits, crc_cut, mode, hash_w )
     for i in strings_to_add:
         strings_in_rom.append(i)
 
-    strings_not_to_add = unic_strings_len[STRING_TO_ADD_CNT:]
+    if( user_string ): 
+      strings_not_to_add = gen_unic_strings_len(STRING_TO_ADD_CNT, _len)
+    else:
+      strings_not_to_add = strings_len[STRING_TO_ADD_CNT:]
 
     for i in strings_not_to_add:
         strings_not_in_rom.append(i)
