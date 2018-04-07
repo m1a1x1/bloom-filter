@@ -1,7 +1,7 @@
 vlib work
 
-vlog /mnt/home_hdd/max/Altera/altera/intelFPGA_lite/16.1/quartus/eda/sim_lib/altera_mf.v
-vlog -sv ../rtl/bloom_filter_pkg.sv
+vlog /home/mt/Altera/16.1/quartus/eda/sim_lib/altera_mf.v
+vlog -sv ../rtl/bloom_filter_regs_pkg.sv
 vlog -sv ../rtl/crc_pkg.sv
 vlog -sv ../rtl/true_dp_ram.sv
 vlog -sv ../rtl/amm_writer.sv

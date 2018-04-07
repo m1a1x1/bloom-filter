@@ -1,9 +1,35 @@
 `timescale 1ns / 1ns
 
 import ast_port_pkg::*;
-import bloom_filter_pkg::*;
+import bloom_filter_regs_pkg::*;
 
 module top_tb;
+
+//// Bloom Filter Parameters: ////
+// See ../rtl/bloom_filter.sv for more details.
+parameter int AST_SINK_SYMBOLS   = 8;
+parameter bit AST_SINK_ORDER     = 1'b1;
+parameter int AST_SOURCE_SYMBOLS = 8;
+parameter bit AST_SOURCE_ORDER   = 1'b1;
+parameter int AST_SINK_EMPTY_W   = ( AST_SINK_SYMBOLS  == 1   ) ?
+                                   ( 1                        ) :
+                                   ( $clog2(AST_SINK_SYMBOLS) );
+parameter int AST_SOURCE_EMPTY_W = ( AST_SOURCE_SYMBOLS  == 1   ) ?
+                                     ( 1                          ) :
+                                     ( $clog2(AST_SOURCE_SYMBOLS) );
+parameter int AMM_CSR_DATA_W     = 16;
+parameter int AMM_CSR_ADDR_W     = 12;
+parameter int AMM_LUT_ADDR_W     = 18;
+parameter int AMM_LUT_DATA_W     = 8;
+parameter int MIN_STR_SIZE       = 3;
+parameter int MAX_STR_SIZE       = 5;
+parameter int HASHES_CNT         = 6;
+parameter int HASH_W             = 10;
+parameter int HASH_LUT_MODE      = 1;
+parameter int OUTPUT_FIFO_DEPTH = 128;
+parameter int BYTE_W = 8;
+
+//// Testbench settings: ////
 
 // Gap (in clock ticks) between input packets
 parameter GAP                  = 0;
@@ -23,10 +49,6 @@ logic                        rst;
 bit                          rst_done=0;
 typedef bit[BYTE_W-1:0]      packet_t[$];
 
-parameter bit AST_SINK_ORDER     = 1;
-parameter int AST_SOURCE_SYMBOLS = 1;
-parameter bit AST_SOURCE_ORDER   = 1;
-
 logic  [AMM_CSR_ADDR_W-1:0] csr_address;
 logic                       csr_read;
 logic  [AMM_CSR_DATA_W-1:0] csr_readdata;
@@ -36,15 +58,6 @@ logic  [AMM_CSR_DATA_W-1:0] csr_writedata;
 logic  [AMM_LUT_ADDR_W-1:0] lut_address;
 logic                       lut_write;
 logic  [AMM_LUT_DATA_W-1:0] lut_writedata;
-
-
-localparam AST_SINK_EMPTY_W = ( AST_SINK_SYMBOLS == 1    ) ?
-                              ( 1                        ) :
-                              ( $clog2(AST_SINK_SYMBOLS) );
-
-localparam AST_SOURCE_EMPTY_W = ( AST_SOURCE_SYMBOLS == 1    ) ?
-                                ( 1                        ) :
-                                ( $clog2(AST_SOURCE_SYMBOLS) );
 
 // SystemVerilog interface with Avalon-ST signals. 
 // It have assertion for more then one start or end of packet inside one packet
