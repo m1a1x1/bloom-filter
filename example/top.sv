@@ -1,20 +1,34 @@
 parameter int AST_SINK_SYMBOLS = 8;
 parameter bit AST_SINK_ORDER   = 1;
+
+parameter int AST_SOURCE_SYMBOLS = 1;
+parameter bit AST_SOURCE_ORDER   = 1;
+
+parameter int AMM_LUT_DATA_W    = 8;
+parameter int AMM_LUT_ADDR_W    = 32;
+
+parameter int MIN_STR_SIZE      = 4;
+parameter int MAX_STR_SIZE      = 16;
+
+parameter int HASHES_CNT        = 6;
+parameter int HASH_W            = 13;
+parameter int HASH_LUT_MODE     = 1;
+
+
+
+parameter int OUTPUT_FIFO_DEPTH = 128;
+parameter int AMM_CSR_DATA_W    = 16;
+parameter int AMM_CSR_ADDR_W    = 12;
+
 parameter int AST_SINK_EMPTY_W = ( AST_SINK_SYMBOLS  == 1   ) ?
                                  ( 1                        ) :
                                  ( $clog2(AST_SINK_SYMBOLS) );
 
-parameter int AST_SOURCE_SYMBOLS = 1;
-parameter bit AST_SOURCE_ORDER   = 1;
 parameter int AST_SOURCE_EMPTY_W = ( AST_SOURCE_SYMBOLS == 1    ) ?
                                    ( 1                          ) :
                                    ( $clog2(AST_SOURCE_SYMBOLS) );
-
-parameter int AMM_CSR_DATA_W   = 16;
-parameter int AMM_CSR_ADDR_W   = 12;
-
-parameter int AMM_LUT_DATA_W   = 8;
-parameter int AMM_LUT_ADDR_W   = 18;
+											  
+parameter int BYTE_W = 8;
 
 module top(
   input                                        clk_156_25_i,
@@ -134,7 +148,19 @@ bloom_filter #(
   .AST_SINK_SYMBOLS           ( AST_SINK_SYMBOLS          ),
   .AST_SINK_ORDER             ( AST_SINK_ORDER            ), 
   .AST_SOURCE_SYMBOLS         ( AST_SOURCE_SYMBOLS        ),
-  .AST_SOURCE_ORDER           ( AST_SOURCE_ORDER          )
+  .AST_SOURCE_ORDER           ( AST_SOURCE_ORDER          ),
+
+  .MIN_STR_SIZE               ( MIN_STR_SIZE              ),
+  .MAX_STR_SIZE               ( MAX_STR_SIZE              ),
+  .AMM_LUT_ADDR_W             ( AMM_LUT_ADDR_W            ),
+  .AMM_LUT_DATA_W             ( AMM_LUT_DATA_W            ),
+  .HASHES_CNT                 ( HASHES_CNT                ),
+  .HASH_W                     ( HASH_W                    ),
+  .HASH_LUT_MODE              ( HASH_LUT_MODE             ),
+
+  .AMM_CSR_DATA_W             ( AMM_CSR_DATA_W            ),
+  .AMM_CSR_ADDR_W             ( AMM_CSR_ADDR_W            ),
+  .OUTPUT_FIFO_DEPTH          ( OUTPUT_FIFO_DEPTH         )
 ) dut (
   .main_clk_i                 ( clk_156_25_i              ),
   .ast_source_clk_i           ( clk_125_i                 ),
@@ -166,4 +192,5 @@ bloom_filter #(
   .ast_source_endofpacket_o   ( ast_source_endofpacket    ),
   .ast_source_startofpacket_o ( ast_source_startofpacket  )
 );
+
 endmodule

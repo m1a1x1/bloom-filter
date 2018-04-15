@@ -77,8 +77,8 @@ set_parameter_property AST_SINK_SYMBOLS DISPLAY_NAME AST_SINK_SYMBOLS
 set_parameter_property AST_SINK_SYMBOLS WIDTH ""
 set_parameter_property AST_SINK_SYMBOLS TYPE INTEGER
 set_parameter_property AST_SINK_SYMBOLS UNITS None
-set_parameter_property AST_SINK_SYMBOLS ALLOWED_RANGES -2147483648:2147483647
-set_parameter_property AST_SINK_SYMBOLS DESCRIPTION ""
+set_parameter_property AST_SINK_SYMBOLS ALLOWED_RANGES 1:128
+set_parameter_property AST_SINK_SYMBOLS DESCRIPTION "Avalon-ST Sink symbols per beat"
 set_parameter_property AST_SINK_SYMBOLS HDL_PARAMETER true
 add_parameter AST_SINK_ORDER BOOLEAN true ""
 set_parameter_property AST_SINK_ORDER DEFAULT_VALUE true
@@ -86,7 +86,7 @@ set_parameter_property AST_SINK_ORDER DISPLAY_NAME AST_SINK_ORDER
 set_parameter_property AST_SINK_ORDER WIDTH ""
 set_parameter_property AST_SINK_ORDER TYPE BOOLEAN
 set_parameter_property AST_SINK_ORDER UNITS None
-set_parameter_property AST_SINK_ORDER DESCRIPTION ""
+set_parameter_property AST_SINK_ORDER DESCRIPTION "Avalon-ST Sink symbols order"
 set_parameter_property AST_SINK_ORDER HDL_PARAMETER true
 add_parameter AST_SOURCE_SYMBOLS INTEGER 2 ""
 set_parameter_property AST_SOURCE_SYMBOLS DEFAULT_VALUE 2
@@ -94,8 +94,8 @@ set_parameter_property AST_SOURCE_SYMBOLS DISPLAY_NAME AST_SOURCE_SYMBOLS
 set_parameter_property AST_SOURCE_SYMBOLS WIDTH ""
 set_parameter_property AST_SOURCE_SYMBOLS TYPE INTEGER
 set_parameter_property AST_SOURCE_SYMBOLS UNITS None
-set_parameter_property AST_SOURCE_SYMBOLS ALLOWED_RANGES -2147483648:2147483647
-set_parameter_property AST_SOURCE_SYMBOLS DESCRIPTION ""
+set_parameter_property AST_SOURCE_SYMBOLS ALLOWED_RANGES 1:128
+set_parameter_property AST_SOURCE_SYMBOLS DESCRIPTION "Avalon-ST Source symbols per beat"
 set_parameter_property AST_SOURCE_SYMBOLS HDL_PARAMETER true
 add_parameter AST_SOURCE_ORDER BOOLEAN true ""
 set_parameter_property AST_SOURCE_ORDER DEFAULT_VALUE true
@@ -103,7 +103,7 @@ set_parameter_property AST_SOURCE_ORDER DISPLAY_NAME AST_SOURCE_ORDER
 set_parameter_property AST_SOURCE_ORDER WIDTH ""
 set_parameter_property AST_SOURCE_ORDER TYPE BOOLEAN
 set_parameter_property AST_SOURCE_ORDER UNITS None
-set_parameter_property AST_SOURCE_ORDER DESCRIPTION ""
+set_parameter_property AST_SOURCE_ORDER DESCRIPTION "Avalon-ST Source symbols order"
 set_parameter_property AST_SOURCE_ORDER HDL_PARAMETER true
 add_parameter AMM_CSR_DATA_W INTEGER 16 ""
 set_parameter_property AMM_CSR_DATA_W DEFAULT_VALUE 16
@@ -111,7 +111,7 @@ set_parameter_property AMM_CSR_DATA_W DISPLAY_NAME AMM_CSR_DATA_W
 set_parameter_property AMM_CSR_DATA_W WIDTH ""
 set_parameter_property AMM_CSR_DATA_W TYPE INTEGER
 set_parameter_property AMM_CSR_DATA_W UNITS None
-set_parameter_property AMM_CSR_DATA_W ALLOWED_RANGES -2147483648:2147483647
+set_parameter_property AMM_CSR_DATA_W ALLOWED_RANGES 1:32
 set_parameter_property AMM_CSR_DATA_W DESCRIPTION ""
 set_parameter_property AMM_CSR_DATA_W HDL_PARAMETER true
 add_parameter AMM_CSR_ADDR_W INTEGER 12 ""
@@ -120,7 +120,7 @@ set_parameter_property AMM_CSR_ADDR_W DISPLAY_NAME AMM_CSR_ADDR_W
 set_parameter_property AMM_CSR_ADDR_W WIDTH ""
 set_parameter_property AMM_CSR_ADDR_W TYPE INTEGER
 set_parameter_property AMM_CSR_ADDR_W UNITS None
-set_parameter_property AMM_CSR_ADDR_W ALLOWED_RANGES -2147483648:2147483647
+set_parameter_property AMM_CSR_ADDR_W ALLOWED_RANGES 1:32
 set_parameter_property AMM_CSR_ADDR_W DESCRIPTION ""
 set_parameter_property AMM_CSR_ADDR_W HDL_PARAMETER true
 add_parameter AMM_LUT_ADDR_W INTEGER 18 ""
