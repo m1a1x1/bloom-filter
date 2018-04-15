@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system name="$${FILENAME}">
+ <component
+   name="$${FILENAME}"
+   displayName="$${FILENAME}"
+   version="1.0"
+   description=""
+   tags=""
+   categories="" />
+ <parameter name="bonusData"><![CDATA[bonusData 
+{
+   element bloom_filter_0
+   {
+      datum _sortIndex
+      {
+         value = "0";
+         type = "int";
+      }
+   }
+}
+]]></parameter>
+ <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
+ <parameter name="device" value="5CEBA2F17A7" />
+ <parameter name="deviceFamily" value="Cyclone V" />
+ <parameter name="deviceSpeedGrade" value="7" />
+ <parameter name="fabricMode" value="QSYS" />
+ <parameter name="generateLegacySim" value="false" />
+ <parameter name="generationId" value="0" />
+ <parameter name="globalResetBus" value="false" />
+ <parameter name="hdlLanguage" value="VERILOG" />
+ <parameter name="hideFromIPCatalog" value="false" />
+ <parameter name="lockedInterfaceDefinition" value="" />
+ <parameter name="maxAdditionalLatency" value="1" />
+ <parameter name="projectName" value="" />
+ <parameter name="sopcBorderPoints" value="false" />
+ <parameter name="systemHash" value="0" />
+ <parameter name="testBenchDutName" value="" />
+ <parameter name="timeStamp" value="0" />
+ <parameter name="useTestBenchNamingPattern" value="false" />
+ <instanceScript></instanceScript>
+ <interface
+   name="amm_csr"
+   internal="bloom_filter_0.amm_slave_csr"
+   type="avalon"
+   dir="end" />
+ <interface
+   name="amm_str_wr"
+   internal="bloom_filter_0.amm_slave_lut"
+   type="avalon"
+   dir="end" />
+ <interface
+   name="ast_data_in"
+   internal="bloom_filter_0.ast_source"
+   type="avalon_streaming"
+   dir="start" />
+ <interface
+   name="ast_data_o"
+   internal="bloom_filter_0.ast_sink"
+   type="avalon_streaming"
+   dir="end" />
+ <interface
+   name="clk_data_in"
+   internal="bloom_filter_0.main_clock_sink"
+   type="clock"
+   dir="end" />
+ <interface
+   name="clk_data_out"
+   internal="bloom_filter_0.src_clock_sink"
+   type="clock"
+   dir="end" />
+ <interface
+   name="srst_data_in"
+   internal="bloom_filter_0.main_reset_sink"
+   type="reset"
+   dir="end" />
+ <interface
+   name="srst_data_out"
+   internal="bloom_filter_0.src_reset_sink"
+   type="reset"
+   dir="end" />
+ <module name="bloom_filter_0" kind="bloom_filter" version="1.0" enabled="1">
+  <parameter name="AMM_CSR_ADDR_W" value="4" />
+  <parameter name="AMM_CSR_DATA_W" value="16" />
+  <parameter name="AMM_LUT_ADDR_W" value="20" />
+  <parameter name="AMM_LUT_DATA_W" value="8" />
+  <parameter name="AST_SINK_ORDER" value="true" />
+  <parameter name="AST_SINK_SYMBOLS" value="8" />
+  <parameter name="AST_SOURCE_ORDER" value="true" />
+  <parameter name="AST_SOURCE_SYMBOLS" value="1" />
+  <parameter name="BYTE_W" value="8" />
+  <parameter name="HASHES_CNT" value="4" />
+  <parameter name="HASH_LUT_MODE" value="1" />
+  <parameter name="HASH_W" value="13" />
+  <parameter name="MAX_STR_SIZE" value="10" />
+  <parameter name="MIN_STR_SIZE" value="4" />
+  <parameter name="OUTPUT_FIFO_DEPTH" value="128" />
+ </module>
+ <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
+ <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
+ <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />
+ <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
+</system>
